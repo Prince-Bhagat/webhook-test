@@ -43,4 +43,4 @@ jobs:
         PR_URL="${{ github.event.pull_request.html_url }}"
         curl -X POST -H "Content-Type: application/json" \
         -d "{\"text\":\"Build failed!\",\"timestamp\":\"$TIMESTAMP\",\"pr_title\":\"$PR_TITLE\",\"pr_url\":\"$PR_URL\"}" \
-        https://example.com/your-webhook-url
+        https://b0tl7zsn-8443.inc1.devtunnels.ms/pipeline

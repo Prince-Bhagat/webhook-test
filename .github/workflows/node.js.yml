@@ -33,6 +33,8 @@ jobs:
   post-build:
     runs-on: ubuntu-latest
     needs: build
+    if: always()
+
     steps:
       - name: Determine build status
         id: build_status

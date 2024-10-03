@@ -47,7 +47,7 @@ jobs:
 
   success_case:
     runs-on: ubuntu-latest
-    needs: build
+    needs: post-build
     if: ${{ needs.build.result == 'success' }}
     steps:
       - name: Get first commit timestamp
@@ -75,7 +75,7 @@ jobs:
           https://b0tl7zsn-8443.inc1.devtunnels.ms/pipeline
   failure_case:
     runs-on: ubuntu-latest
-    needs: build
+    needs: post-build
     if: ${{ needs.build.result == 'failure' }}
     steps:         
       - name: Make REST call on failure

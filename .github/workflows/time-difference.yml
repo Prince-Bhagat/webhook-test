@@ -10,12 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
       - name: Get first commit timestamp
         id: get_first_commit
         run: |
-          FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
-          FIRST_COMMIT_DATE=$(git show -s --format=%ci $FIRST_COMMIT)
-          echo "FIRST_COMMIT_DATE=$FIRST_COMMIT_DATE" >> $GITHUB_ENV
+          FIRST_COMMIT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/commits?sha=main&per_page=1" | jq -r '..commit.committer.date')
+          echo "FIRST_COMMIT_DATE=$FIRST_COMMIT" >> $GITHUB_ENV
 
       - name: Calculate time difference
         run: |
@@ -23,8 +26,4 @@ jobs:
           FIRST_COMMIT_DATE=${{ env.FIRST_COMMIT_DATE }}
           TIME_DIFF=$(($(date -d "$CURRENT_DATE" +%s) - $(date -d "$FIRST_COMMIT_DATE" +%s)))
           TIME_DIFF_HOURS=$(($TIME_DIFF / 3600))
-          echo "Time difference in seconds: $TIME_DIFF"
-          echo "Time difference in days: $(($TIME_DIFF / 86400))"
           echo "Time difference in hours: $TIME_DIFF_HOURS"
-
-

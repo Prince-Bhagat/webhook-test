@@ -1,29 +1,57 @@
-name: Calculate Time Difference
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Node.js CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+
 
 jobs:
-  calculate-time-difference:
+  build:
+
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [20.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run build --if-present
+    - run: npm test
 
-      - name: Get first commit timestamp
-        id: get_first_commit
-        run: |
-          FIRST_COMMIT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/commits?sha=main&per_page=1" | jq -r '..commit.committer.date')
-          echo "FIRST_COMMIT_DATE=$FIRST_COMMIT" >> $GITHUB_ENV
+  post-build:
+    runs-on: ubuntu-latest
+    needs: build
+    if: always()
 
-      - name: Calculate time difference
+    steps:
+      - name: Determine build status
+        id: build_status
         run: |
-          CURRENT_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          FIRST_COMMIT_DATE=${{ env.FIRST_COMMIT_DATE }}
-          TIME_DIFF=$(($(date -d "$CURRENT_DATE" +%s) - $(date -d "$FIRST_COMMIT_DATE" +%s)))
-          TIME_DIFF_HOURS=$(($TIME_DIFF / 3600))
-          echo "Time difference in hours: $TIME_DIFF_HOURS"
+          if [ "${{ needs.build.result }}" == "success" ]; then
+            echo "status=success" >> $GITHUB_ENV
+          elif [ "${{ needs.build.result }}" == "failure" ]; then
+            echo "status=failure" >> $GITHUB_ENV
+          else
+            echo "status=cancelled" >> $GITHUB_ENV
+          fi
+
+      - name: Make REST call on failure
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          BUILD_STATUS="${{ env.status }}"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{\"status\":\"$BUILD_STATUS\",\"timestamp\":\"$TIMESTAMP\",\"pr_title\":\"$PR_TITLE\",\"pr_url\":\"$PR_URL\"}" \
+          https://b0tl7zsn-8443.inc1.devtunnels.ms/pipeline

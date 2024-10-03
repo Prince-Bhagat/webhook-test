@@ -6,8 +6,7 @@ name: Node.js CI
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+
 
 jobs:
   build:
@@ -29,3 +28,30 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
+
+  post-build:
+    runs-on: ubuntu-latest
+    needs: build
+    if: always()
+
+    steps:
+      - name: Determine build status
+        id: build_status
+        run: |
+          if [ "${{ needs.build.result }}" == "success" ]; then
+            echo "status=success" >> $GITHUB_ENV
+          elif [ "${{ needs.build.result }}" == "failure" ]; then
+            echo "status=failure" >> $GITHUB_ENV
+          else
+            echo "status=cancelled" >> $GITHUB_ENV
+          fi
+
+      - name: Make REST call on failure
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          BUILD_STATUS="${{ env.status }}"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{\"status\":\"$BUILD_STATUS\",\"timestamp\":\"$TIMESTAMP\",\"pr_title\":\"$PR_TITLE\",\"pr_url\":\"$PR_URL\"}" \
+          https://b0tl7zsn-8443.inc1.devtunnels.ms/pipeline

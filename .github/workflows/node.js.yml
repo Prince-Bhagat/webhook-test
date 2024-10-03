@@ -51,7 +51,7 @@ jobs:
         run: |
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           PR_TITLE="${{ github.event.pull_request.title }}"
-          BUILD_STATUS="${{ steps.build_status.outputs.status }}"
+          BUILD_STATUS="${{ env.status }}"
           PR_URL="${{ github.event.pull_request.html_url }}"
           curl -X POST -H "Content-Type: application/json" \
           -d "{\"status\":\"$BUILD_STATUS\",\"timestamp\":\"$TIMESTAMP\",\"pr_title\":\"$PR_TITLE\",\"pr_url\":\"$PR_URL\"}" \

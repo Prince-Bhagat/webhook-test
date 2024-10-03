@@ -1,0 +1,30 @@
+name: Calculate Time Difference
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  calculate-time-difference:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get first commit timestamp
+        id: get_first_commit
+        run: |
+          FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
+          FIRST_COMMIT_DATE=$(git show -s --format=%ci $FIRST_COMMIT)
+          echo "FIRST_COMMIT_DATE=$FIRST_COMMIT_DATE" >> $GITHUB_ENV
+
+      - name: Calculate time difference
+        run: |
+          CURRENT_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          FIRST_COMMIT_DATE=${{ env.FIRST_COMMIT_DATE }}
+          TIME_DIFF=$(($(date -d "$CURRENT_DATE" +%s) - $(date -d "$FIRST_COMMIT_DATE" +%s)))
+          TIME_DIFF_HOURS=$(($TIME_DIFF / 3600))
+          echo "Time difference in seconds: $TIME_DIFF"
+          echo "Time difference in days: $(($TIME_DIFF / 86400))"
+          echo "Time difference in hours: $TIME_DIFF_HOURS"
+
+

@@ -46,7 +46,7 @@ jobs:
   success_case:
     runs-on: ubuntu-latest
     needs: post-build
-    if: "${{ env.status == 'success' }}"
+    if: ${{ needs.build.result == 'success' }}
     steps:
       - name: Get first commit timestamp
         id: get_first_commit
@@ -74,7 +74,7 @@ jobs:
   failure_case:
     runs-on: ubuntu-latest
     needs: post-build
-    if: "${{ env.status == 'failure' }}"
+    if: ${{ needs.build.result == 'failure' }}
     steps:         
       - name: Update index
         run: |

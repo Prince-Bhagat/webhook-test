@@ -1,0 +1,62 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run build --if-present
+    - run: npm test
+
+  handle-result:
+    runs-on: ubuntu-latest
+    if: always()  # This ensures it always runs after 'build'
+    steps:
+      - name: Set build status
+        id: set_status
+        run: |
+          if [ "${{ needs.build.result }}" == "success" ]; then
+            echo "::set-output name=status::success"
+          else
+            echo "::set-output name=status::failure"
+          fi
+
+      # Conditionally run the success or failure steps based on the build outcome
+      - name: Run Success Case
+        if: ${{ steps.set_status.outputs.status == 'success' }}
+        run: |
+          echo "Running success case..."
+          FIRST_COMMIT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/commits?sha=main&per_page=1" | jq -r ".[0].commit.committer.date")
+          echo "First commit date: $FIRST_COMMIT"
+
+          CURRENT_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          TIME_DIFF=$(($(date -d "$CURRENT_DATE" +%s) - $(date -d "$FIRST_COMMIT" +%s)))
+
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{\"status\":\"success\",\"lttc\":\"$TIME_DIFF\",\"timestamp\":\"$CURRENT_DATE\",\"pr_title\":\"${{ github.event.pull_request.title }}\",\"pr_url\":\"${{ github.event.pull_request.html_url }}\"}" \
+          https://b0tl7zsn-8443.inc1.devtunnels.ms/pipeline
+
+      - name: Run Failure Case
+        if: ${{ steps.set_status.outputs.status == 'failure' }}
+        run: |
+          echo "Running failure case..."
+          CURRENT_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{\"status\":\"failure\",\"timestamp\":\"$CURRENT_DATE\",\"pr_title\":\"${{ github.event.pull_request.title }}\",\"pr_url\":\"${{ github.event.pull_request.html_url }}\"}" \
+          https://b0tl7zsn-8443.inc1.devtunnels.ms/pipeline

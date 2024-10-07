@@ -1,0 +1,58 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run build --if-present
+    - run: npm test
+
+  # Success case runs only if the build job succeeds
+  success_case:
+    runs-on: ubuntu-latest
+    needs: build  # This ensures success_case runs only after the 'build' job finishes
+    if: success() # This job will only run if the build job was successful
+    steps:
+      - name: Get first commit timestamp
+        run: |
+          FIRST_COMMIT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/commits?sha=main&per_page=1" | jq -r ".[0].commit.committer.date")
+          echo "First commit date: $FIRST_COMMIT"
+
+      - name: Update the index
+        run: |
+          CURRENT_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          TIME_DIFF=$(($(date -d "$CURRENT_DATE" +%s) - $(date -d "$FIRST_COMMIT" +%s)))
+
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{\"status\":\"success\",\"lttc\":$TIME_DIFF,\"timestamp\":\"$CURRENT_DATE\",\"pr_title\":\"${{ github.event.pull_request.title }}\",\"pr_url\":\"${{ github.event.pull_request.html_url }}\"}" \
+          https://b0tl7zsn-8443.inc1.devtunnels.ms/pipeline
+
+  # Failure case runs only if the build job fails
+  failure_case:
+    runs-on: ubuntu-latest
+    needs: build  # This ensures failure_case runs only after the 'build' job finishes
+    if: failure() # This job will only run if the build job failed
+    steps:
+      - name: Update index for failure
+        run: |
+          CURRENT_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{\"status\":\"failure\",\"timestamp\":\"$CURRENT_DATE\",\"pr_title\":\"${{ github.event.pull_request.title }}\",\"pr_url\":\"${{ github.event.pull_request.html_url }}\"}" \
+          https://b0tl7zsn-8443.inc1.devtunnels.ms/pipeline

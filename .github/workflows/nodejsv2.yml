@@ -40,7 +40,7 @@ jobs:
           TIME_DIFF=$(($(date -d "$CURRENT_DATE" +%s) - $(date -d "$FIRST_COMMIT" +%s)))
 
           curl -X POST -H "Content-Type: application/json" \
-          -d "{\"status\":\"success\",\"lttc\":\"$TIME_DIFF\",\"timestamp\":\"$CURRENT_DATE\",\"pr_title\":\"${{ github.event.pull_request.title }}\",\"pr_url\":\"${{ github.event.pull_request.html_url }}\"}" \
+          -d "{\"status\":\"success\",\"lttc\":$TIME_DIFF,\"timestamp\":\"$CURRENT_DATE\",\"pr_title\":\"${{ github.event.pull_request.title }}\",\"pr_url\":\"${{ github.event.pull_request.html_url }}\"}" \
           https://b0tl7zsn-8443.inc1.devtunnels.ms/pipeline
 
   # Failure case runs only if the build job fails

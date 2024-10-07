@@ -24,7 +24,7 @@ jobs:
 
   handle-result:
     runs-on: ubuntu-latest
-    if: always()  # This ensures it always runs after 'build'
+    if: success()  # This ensures it always runs after 'build'
     steps:
       - name: Set build status
         id: set_status

@@ -43,7 +43,7 @@ jobs:
 
           curl -X POST -H "Content-Type: application/json" \
           -d "{\"status\":\"success\",\"lttc\":$TIME_DIFF_HOURS,\"timestamp\":\"$CURRENT_DATE\",\"pr_title\":\"${{ github.event.pull_request.title }}\",\"pr_url\":\"${{ github.event.pull_request.html_url }}\"}" \
-          https://hd81qrj4-8443.inc1.devtunnels.ms/pipeline
+          https://hd81qrj4-3000.inc1.devtunnels.ms/pipeline
 
   # Failure case runs only if the build job fails
   failure_case:
@@ -57,4 +57,4 @@ jobs:
 
           curl -X POST -H "Content-Type: application/json" \
           -d "{\"status\":\"failure\",\"timestamp\":\"$CURRENT_DATE\",\"pr_title\":\"${{ github.event.pull_request.title }}\",\"pr_url\":\"${{ github.event.pull_request.html_url }}\"}" \
-          https://hd81qrj4-8443.inc1.devtunnels.ms/pipeline
+          https://hd81qrj4-3000.inc1.devtunnels.ms/pipeline

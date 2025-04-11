@@ -1,6 +1,5 @@
 # Getting Started with Create React App
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-Removed Feature A
 Removed Feature B
 Added Feature C
 ## Available Scripts

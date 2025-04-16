@@ -5,7 +5,7 @@ In the project directory, you can run:
 
 ### `npm start`
 Add Feature One
-Add Commit for feature 1
+Add Commit for feature One
 
 Add Feature 2
 Runs the app in the development mode.\

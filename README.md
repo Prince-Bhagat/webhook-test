@@ -6,6 +6,7 @@ In the project directory, you can run:
 Add Feature 1
 added commit to feature 1
 ### `npm start`
+Added Feature 2
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.

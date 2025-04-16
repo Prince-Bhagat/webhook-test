@@ -4,7 +4,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 In the project directory, you can run:
 
 ### `npm start`
-Add Feature One
+Add Feature 1
 Add Commit for feature One
 
 Add Feature 22

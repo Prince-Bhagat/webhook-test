@@ -3,8 +3,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 ## Available Scripts
 # added comit
 In the project directory, you can run:
-Add Feature 1
-added commit to feature 1
+
 ### `npm start`
 Added Feature 2
 
